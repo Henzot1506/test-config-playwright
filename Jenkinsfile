@@ -13,7 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm // Tuong duong voi actions/checkout@v4
+                checkout scm 
             }
         }
         
