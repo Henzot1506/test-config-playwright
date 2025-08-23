@@ -34,7 +34,6 @@ pipeline {
         
         stage('Run Tests') {
             steps {
-                // Chay test va khong that bai pipeline neu test loi
                 script {
                     try {
                         sh 'npm run test'
