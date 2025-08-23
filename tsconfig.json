@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "nodenext",
+    "rootDir": "./",
+    "outDir": "./dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["node", "@cucumber/cucumber"]
+  },
+  "include": ["tests/**/*.ts", "features/**/*.ts"],
+  "exclude": ["node_modules"]
+}

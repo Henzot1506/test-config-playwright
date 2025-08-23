@@ -1,0 +1,26 @@
+{
+  "name": "demowebshop-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "test:report": "npx playwright show-report",
+    "bdd": "npx cucumber-js",
+    "bdd:report": "npx cucumber-js && open cucumber-report.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@cucumber/messages": "^28.1.0",
+    "@playwright/test": "^1.54.2",
+    "@types/node": "^24.3.0",
+    "playwright": "^1.54.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
