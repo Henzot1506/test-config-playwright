@@ -27,7 +27,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci' 
-                sh 'npx playwright install' // Cai dat Playwright
+                sh 'npx playwright install' 
             }
         }
         
