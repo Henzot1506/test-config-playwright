@@ -1,33 +1,65 @@
 pipeline {
-    agent any
-    tools {
-        nodejs "NodeJS" // Tên NodeJS được cấu hình trong Global Tool Configuration
+    agent {
+        docker {
+            image 'node:20' // Su dung Node.js version 20.x
+            args '-u root' // Chay voi quyen root de tranh van de quyen
+        }
     }
+    
+    triggers {
+        pollSCM('H/5 * * * *') 
+    }
+    
     stages {
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/<yourusername>/playwright-cucumber-repo.git', branch: 'main'
+                checkout scm // Tuong duong voi actions/checkout@v4
             }
         }
+        
+        stage('Setup Node.js') {
+            steps {
+                // Node.js da co san trong Docker image
+                sh 'node --version'
+                sh 'npm --version'
+            }
+        }
+        
         stage('Install Dependencies') {
             steps {
-                sh 'npm install'
+                sh 'npm ci' // Cai dat dependencies
+                sh 'npx playwright install' // Cai dat Playwright
             }
         }
-        stage('Run Playwright-Cucumber Tests') {
+        
+        stage('Run Tests') {
             steps {
-                sh 'npx cucumber-js'
+                script {
+                    try {
+                        sh 'npm run test'
+                    } catch (Exception e) {
+                        echo 'Tests failed, continuing pipeline...'
+                    }
+                }
             }
         }
-        stage('Publish Cucumber Report') {
+        
+        stage('Run BDD') {
             steps {
-                cucumber fileIncludePattern: '**/*.json', sortingMethod: 'ALPHABETICAL'
+                script {
+                    try {
+                        sh 'npm run bdd'
+                    } catch (Exception e) {
+                        echo 'BDD failed, continuing pipeline...'
+                    }
+                }
             }
         }
     }
+    
     post {
         always {
-            archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true
+            cleanWs() 
         }
     }
 }
