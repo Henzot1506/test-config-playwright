@@ -47,7 +47,6 @@ pipeline {
         
         stage('Run BDD') {
             steps {
-                // Chay BDD va khong that bai pipeline neu BDD loi
                 script {
                     try {
                         sh 'npm run bdd'
