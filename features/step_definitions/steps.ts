@@ -9,7 +9,7 @@ let page: Page;
 
 // Hook để khởi tạo browser trước mỗi scenario
 Given('I am on the home page', async function () {
-    browser = await chromium.launch({ headless: false }); // Hoặc headless: false để xem trình duyệt
+    browser = await chromium.launch({ headless: true }); // Hoặc headless: false để xem trình duyệt
     page = await browser.newPage();
     await page.goto('https://demowebshop.tricentis.com/');
 });
