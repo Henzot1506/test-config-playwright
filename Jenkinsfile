@@ -61,7 +61,7 @@ pipeline {
     
     post {
         always {
-            cleanWs() // Don dep workspace sau khi chay
+            cleanWs() 
         }
     }
 }
