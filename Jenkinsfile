@@ -1,33 +1,31 @@
 pipeline {
-    agent {
-        docker {
-            image 'node:20' // Su dung Node.js version 20.x
-            args '-u root' // Chay voi quyen root de tranh van de quyen
-        }
+    agent any // Use any available Jenkins agent instead of Docker
+    tools {
+        nodejs "NodeJS" // Reference the Node.js installation configured in Jenkins
     }
     
     triggers {
-        pollSCM('H/5 * * * *') 
+        githubPush() // Trigger pipeline on GitHub push events (replaces pollSCM)
     }
     
     stages {
         stage('Checkout') {
             steps {
-                checkout scm 
+                checkout scm // Checkout code from the configured SCM (GitHub)
             }
         }
         
         stage('Setup Node.js') {
             steps {
-                sh 'node --version'
-                sh 'npm --version'
+                sh 'node --version' // Verify Node.js version
+                sh 'npm --version'  // Verify npm version
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci' 
-                sh 'npx playwright install' 
+                sh 'npm ci' // Install dependencies using npm ci for consistency
+                sh 'npx playwright install --with-deps' // Install Playwright and browser dependencies
             }
         }
         
@@ -35,9 +33,10 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'npm run test'
+                        sh 'npm run test' // Run unit/integration tests
                     } catch (Exception e) {
-                        echo 'Tests failed, continuing pipeline...'
+                        echo "Tests failed: ${e.message}"
+                        currentBuild.result = 'UNSTABLE' // Mark build as unstable instead of failed
                     }
                 }
             }
@@ -47,18 +46,26 @@ pipeline {
             steps {
                 script {
                     try {
-                        sh 'npm run bdd'
+                        sh 'npm run bdd' // Run Cucumber BDD tests
                     } catch (Exception e) {
-                        echo 'BDD failed, continuing pipeline...'
+                        echo "BDD tests failed: ${e.message}"
+                        currentBuild.result = 'UNSTABLE' // Mark build as unstable
                     }
                 }
+            }
+        }
+        
+        stage('Publish Cucumber Report') {
+            steps {
+                cucumber fileIncludePattern: '**/*.json', sortingMethod: 'ALPHABETICAL' // Publish Cucumber reports
             }
         }
     }
     
     post {
         always {
-            cleanWs() 
+            archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true // Archive test reports
+            cleanWs() // Clean workspace after build
         }
     }
 }
