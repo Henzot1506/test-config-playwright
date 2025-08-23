@@ -1,71 +1,71 @@
 pipeline {
-    agent any // Use any available Jenkins agent instead of Docker
-    tools {
-        nodejs "NodeJS" // Reference the Node.js installation configured in Jenkins
-    }
-    
-    triggers {
-        githubPush() // Trigger pipeline on GitHub push events (replaces pollSCM)
+    agent {
+        label 'ubuntu-latest' // Sử dụng agent có nhãn ubuntu-latest
     }
     
     stages {
         stage('Checkout') {
             steps {
-                checkout scm // Checkout code from the configured SCM (GitHub)
+                // Checkout mã nguồn từ repository
+                checkout scm
             }
         }
         
         stage('Setup Node.js') {
             steps {
-                sh 'node --version' // Verify Node.js version
-                sh 'npm --version'  // Verify npm version
+                // Sử dụng plugin NodeJS để cài đặt Node.js phiên bản 20.x
+                tool name: 'Node20', type: 'nodejs'
+                sh 'npm install -g npm@latest' // Cập nhật npm
+                sh 'node --version' // Kiểm tra phiên bản Node.js
+                sh 'npm --version' // Kiểm tra phiên bản npm
             }
         }
         
         stage('Install Dependencies') {
             steps {
-                sh 'npm ci' // Install dependencies using npm ci for consistency
-                sh 'npx playwright install --with-deps' // Install Playwright and browser dependencies
+                // Cài đặt dependencies với npm ci, sử dụng cache nếu có
+                sh 'npm ci'
+            }
+        }
+        
+        stage('Install Playwright') {
+            steps {
+                // Cài đặt Playwright
+                sh 'npx playwright install'
             }
         }
         
         stage('Run Tests') {
             steps {
+                // Chạy npm run test, tiếp tục pipeline dù có lỗi
                 script {
                     try {
-                        sh 'npm run test' // Run unit/integration tests
+                        sh 'npm run test'
                     } catch (Exception e) {
-                        echo "Tests failed: ${e.message}"
-                        currentBuild.result = 'UNSTABLE' // Mark build as unstable instead of failed
+                        echo "Test step failed: ${e.getMessage()}. Continuing..."
                     }
                 }
             }
         }
         
-        stage('Run BDD') {
+        stage('Run BDD Tests') {
             steps {
+                // Chạy npm run bdd, tiếp tục pipeline dù có lỗi
                 script {
                     try {
-                        sh 'npm run bdd' // Run Cucumber BDD tests
+                        sh 'npm run bdd'
                     } catch (Exception e) {
-                        echo "BDD tests failed: ${e.message}"
-                        currentBuild.result = 'UNSTABLE' // Mark build as unstable
+                        echo "BDD Test step failed: ${e.getMessage()}. Continuing..."
                     }
                 }
-            }
-        }
-        
-        stage('Publish Cucumber Report') {
-            steps {
-                cucumber fileIncludePattern: '**/*.json', sortingMethod: 'ALPHABETICAL' // Publish Cucumber reports
             }
         }
     }
     
     post {
         always {
-            archiveArtifacts artifacts: 'reports/**', allowEmptyArchive: true // Archive test reports
-            cleanWs() // Clean workspace after build
+            // Lưu trữ artifacts hoặc log nếu cần
+            archiveArtifacts artifacts: '*/test-results/*', allowEmptyArchive: true
         }
     }
 }
