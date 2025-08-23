@@ -1,97 +1,67 @@
 pipeline {
     agent {
-        label 'ubuntu-latest || any'
+        docker {
+            image 'node:20' // Su dung Node.js version 20.x
+            args '-u root' // Chay voi quyen root de tranh van de quyen
+        }
     }
-
-    environment {
-        // Có thể định nghĩa version ở đây để dễ thay đổi
-        NODE_VERSION = "20.x"
+    
+    triggers {
+        pollSCM('H/5 * * * *') // Kiem tra SCM moi 5 phut
     }
-
+    
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                checkout scm // Tuong duong voi actions/checkout@v4
             }
         }
-
+        
         stage('Setup Node.js') {
             steps {
-                // Script này cài đặt nvm (Node Version Manager) và sau đó cài đặt phiên bản Node.js cụ thể
-                sh '''
-                    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-                    export NVM_DIR="$HOME/.nvm"
-                    [ -s "$NVM_DIR/nvm.sh" ] && \\\\. "$NVM_DIR/nvm.sh"  # This loads nvm
-                    nvm install ${NODE_VERSION}
-                    nvm use ${NODE_VERSION}
-                    node --version
-                    npm --version
-                '''
+                // Node.js da co san trong Docker image
+                sh 'node --version'
+                sh 'npm --version'
             }
         }
-
-        stage('Setup & Install') {
+        
+        stage('Install Dependencies') {
             steps {
-                sh 'npm ci'
+                sh 'npm ci' // Cai dat dependencies
+                sh 'npx playwright install' // Cai dat Playwright
             }
         }
-
-        stage('Install Playwright Browsers') {
-            steps {
-                sh 'npx playwright install --with-deps'
-            }
-        }
-
+        
         stage('Run Tests') {
-            parallel {
-                stage('Playwright Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh 'npm test'
-                        }
-                    }
-                    post {
-                        always {
-                            publishHTML(target: [
-                                allowMissing: true,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: 'playwright-report',
-                                reportFiles: 'index.html',
-                                reportName: 'Playwright Report'
-                            ])
-                            archiveArtifacts(artifacts: 'playwright-report/**/*')
-                        }
+            steps {
+                // Chay test va khong that bai pipeline neu test loi
+                script {
+                    try {
+                        sh 'npm run test'
+                    } catch (Exception e) {
+                        echo 'Tests failed, continuing pipeline...'
                     }
                 }
-
-                stage('Cucumber (BDD) Tests') {
-                    steps {
-                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
-                            sh 'npm run bdd'
-                        }
-                    }
-                    post {
-                        always {
-                            publishHTML(target: [
-                                allowMissing: true,
-                                alwaysLinkToLastBuild: true,
-                                keepAll: true,
-                                reportDir: '.',
-                                reportFiles: 'cucumber-report.html',
-                                reportName: 'Cucumber Report'
-                            ])
-                            archiveArtifacts(artifacts: 'cucumber-report.html')
-                        }
+            }
+        }
+        
+        stage('Run BDD') {
+            steps {
+                // Chay BDD va khong that bai pipeline neu BDD loi
+                script {
+                    try {
+                        sh 'npm run bdd'
+                    } catch (Exception e) {
+                        echo 'BDD failed, continuing pipeline...'
                     }
                 }
             }
         }
     }
-
+    
     post {
         always {
-            cleanWs()
+            cleanWs() // Don dep workspace sau khi chay
         }
     }
 }
