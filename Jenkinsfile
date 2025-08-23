@@ -19,7 +19,6 @@ pipeline {
         
         stage('Setup Node.js') {
             steps {
-                // Node.js da co san trong Docker image
                 sh 'node --version'
                 sh 'npm --version'
             }
