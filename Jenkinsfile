@@ -4,7 +4,7 @@ pipeline {
         nodejs 'Node20' // Đảm bảo plugin NodeJS đã cài và Node20 được cấu hình trong Global Tool Configuration
     }
     triggers {
-        githubPush() // Trigger pipeline khi có commit/push
+        githubPush()
     }
     stages {
         stage('Checkout') {
