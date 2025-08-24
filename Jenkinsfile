@@ -35,7 +35,7 @@ pipeline {
     }
     post {
         always {
-            cleanWs() // Dọn dẹp workspace sau khi chạy
+            cleanWs() 
         }
     }
 }
