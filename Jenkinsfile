@@ -14,7 +14,7 @@ pipeline {
         }
         stage('Setup Node.js') {
             steps {
-                sh 'npm ci' // Cài đặt dependencies
+                sh 'npm ci' 
             }
         }
         stage('Install Playwright') {
