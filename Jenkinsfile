@@ -9,7 +9,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm // Tương ứng với actions/checkout@v4
+                checkout scm 
             }
         }
         stage('Setup Node.js') {
