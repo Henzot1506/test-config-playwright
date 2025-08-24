@@ -1,7 +1,7 @@
 pipeline {
     agent any
     tools {
-        nodejs 'Node20' // Định nghĩa Node.js version (cần cấu hình Node.js trong Jenkins Global Tool Configuration)
+        nodejs 'Node20' // Đảm bảo plugin NodeJS đã cài và Node20 được cấu hình trong Global Tool Configuration
     }
     triggers {
         githubPush() // Trigger pipeline khi có commit/push
@@ -14,7 +14,6 @@ pipeline {
         }
         stage('Setup Node.js') {
             steps {
-                // Node.js đã được cấu hình ở tools, không cần thêm bước setup
                 sh 'npm ci' // Cài đặt dependencies
             }
         }
@@ -25,15 +24,15 @@ pipeline {
         }
         stage('Run Tests') {
             steps {
-                sh 'npm run test' // Chạy test
+                // Sử dụng returnStatus: true để bỏ qua lỗi, tương tự continue-on-error
+                sh returnStatus: true, script: 'npm run test' // Chạy test
             }
-            continueOnError: true // Tương ứng với continue-on-error: true
         }
         stage('Run BDD') {
             steps {
-                sh 'npm run bdd' // Chạy BDD
+                // Sử dụng returnStatus: true để bỏ qua lỗi, tương tự continue-on-error
+                sh returnStatus: true, script: 'npm run bdd' // Chạy BDD
             }
-            continueOnError: true // Tương ứng với continue-on-error: true
         }
     }
     post {
