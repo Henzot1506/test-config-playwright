@@ -1,37 +1,35 @@
 pipeline {
     agent any
     tools {
-        nodejs 'Node20' // Đảm bảo plugin NodeJS đã cài và Node20 được cấu hình trong Global Tool Configuration
+        nodejs 'Node20' // Đảm bảo Node20 đã được cấu hình trong Global Tool Configuration
     }
     triggers {
-        githubPush()
+        githubPush() // Trigger pipeline khi có commit/push
     }
     stages {
         stage('Checkout') {
             steps {
-                checkout scm 
+                checkout scm // Tương ứng với actions/checkout@v4
             }
         }
         stage('Setup Node.js') {
             steps {
-                sh 'npm ci' 
+                bat 'npm ci' // Sử dụng bat thay vì sh trên Windows
             }
         }
         stage('Install Playwright') {
             steps {
-                sh 'npx playwright install' // Cài đặt Playwright
+                bat 'npx playwright install' // Sử dụng bat thay vì sh
             }
         }
         stage('Run Tests') {
             steps {
-                // Sử dụng returnStatus: true để bỏ qua lỗi, tương tự continue-on-error
-                sh returnStatus: true, script: 'npm run test' // Chạy test
+                bat returnStatus: true, script: 'npm run test' // Bỏ qua lỗi nếu test thất bại
             }
         }
         stage('Run BDD') {
             steps {
-                // Sử dụng returnStatus: true để bỏ qua lỗi, tương tự continue-on-error
-                sh returnStatus: true, script: 'npm run bdd' // Chạy BDD
+                bat returnStatus: true, script: 'npm run bdd' // Bỏ qua lỗi nếu BDD thất bại
             }
         }
     }
